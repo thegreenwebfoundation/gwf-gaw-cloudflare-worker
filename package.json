@@ -12,5 +12,9 @@
     "@cloudflare/vitest-pool-workers": "^0.6.4",
     "vitest": "2.1.8",
     "wrangler": "^3.107.2"
+  },
+  "dependencies": {
+    "@greenweb/gaw-plugin-cloudflare-workers": "^0.2.1",
+    "@greenweb/grid-aware-websites": "^0.2.0"
   }
 }
