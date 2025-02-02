@@ -15,6 +15,12 @@
 			"pattern": "www.thegreenwebfoundation.org/tools/grid-aware-websites/",
 			"zone_name": "thegreenwebfoundation.org"
 		}
+	],
+	"kv_namespaces": [
+		{
+			"binding": "GAW_DATA_KV",
+			"id": "590f78051f084c70a7315f1fafac986a"
+		}
 	]
 	/**
    * Smart Placement
