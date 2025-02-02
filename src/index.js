@@ -1,5 +1,5 @@
 import { gridAwarePower } from '@greenweb/grid-aware-websites';
-import { getLocation } from '@greenweb/gaw-plugin-cloudflare-workers';
+import { getLocation, saveDataToKv, fetchDataFromKv } from '@greenweb/gaw-plugin-cloudflare-workers';
 
 export default {
 	// First fetch the request
@@ -27,9 +27,15 @@ export default {
 				});
 			}
 
-			const gridData = await gridAwarePower(country, env.EMAPS_API_KEY, {
-				mode: 'low-carbon'
-			});
+			// First check if the there's data for the country saved to KV
+			let gridData = await fetchDataFromKv(env, country);
+
+			// If no cached data, fetch it using the `gridAwarePower` function
+			if (!gridData) {
+				gridData = await gridAwarePower(country, env.EMAPS_API_KEY, {
+					mode: 'low-carbon',
+				});
+			}
 
 			// If there's an error getting data, return the web page without any modifications
 			if (gridData.status === 'error') {
@@ -40,6 +46,9 @@ export default {
 					},
 				});
 			}
+
+			// Save the gridData to the KV store. By default, data is cached for 1 hour.
+			await saveDataToKv(env, country, JSON.stringify(gridData));
 
 			// If the grid aware flag is triggered (gridAware === true), then we'll return a modified HTML page to the user.
 			if (gridData.gridAware) {
