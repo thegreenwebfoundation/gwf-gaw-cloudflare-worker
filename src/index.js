@@ -63,11 +63,73 @@ export default {
 
 			// If the grid aware flag is triggered (gridAware === true), then we'll return a modified HTML page to the user.
 			if (gridData.gridAware) {
+
+				// Use the HTMLRewriter API to modify the HTML page.
+				// We remove iframes that are present on the page.
+				// We also remove lazy loading from images that is done by the Smush plugin.
+				// We also remove the Youtube Lyte plugin.
+				// We also remove the Sendinblue plugin.
+				// We also add a banner to the top of the page to inform the user that the page is grid-aware.
+
 				const modifyHTML = new HTMLRewriter().on('iframe', {
 					element(element) {
 						element.remove();
 					},
-				});
+				}).on('main', {
+					element(element) {
+						element.prepend(`<div class="grid-aware-info">
+							<div class="container single-page-container">
+							This page is grid-aware, and has been modified to use less power.
+							</div>
+							</div>`, { html: true });
+					},
+				}).on('body', {
+					element(element) {
+						element.prepend(`<style>
+							.grid-aware-info {
+								background-color: #f0f0f0;
+								padding-block: 0.5rem;
+								text-align: center;
+								color: #000;
+							}
+							</style>`, { html: true });
+					}
+				}).on('link[href*="code-prettify"]', {
+					element(element) {
+						element.remove();
+					},
+				}).on('script[src*="code-prettify"]', {
+					element(element) {
+						element.remove();
+					},
+				}).on('script[id*="code-prettify"]', {
+					element(element) {
+						element.remove();
+					},
+				}).on('script[id*="sib-front-js"]', {
+					element(element) {
+						element.remove();
+					},
+				}).on('script[src*="wp-youtube-lyte"]', {
+					element(element) {
+						element.remove();
+					}
+			}).on('script[id*="smush-lazy-load-js"]', {
+				element(element) {
+					element.remove();
+				}
+			}).on('img[class*="wp-post-image lazyload"]', {
+				element(element) {
+					const src = element.getAttribute('data-src');
+					element.setAttribute('loading', 'lazy');
+					element.setAttribute('src', src);
+					element.removeAttribute('data-src');
+					element.removeAttribute('data-srcset');
+					element.removeAttribute('data-sizes');
+					element.removeAttribute('style');
+					element.setAttribute('class', "attachment-post-thumbnail size-post-thumbnail wp-post-image");
+				}
+			});
 
 				// Transform the response using the HTMLRewriter API, and set appropriate headers.
 				let modifiedResponse = new Response(modifyHTML.transform(response).body, {
