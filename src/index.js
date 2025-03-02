@@ -16,6 +16,17 @@ export default {
 		}
 
 		try {
+
+			// We use a cookie to allow us to manually disable the grid-aware feature.
+			// This is useful for testing purposes. It can also be used to disable the feature for specific users.
+			const cookie = request.headers.get('cookie');
+			if (cookie && cookie.includes('gaw=false')) {
+				return new Response(response.body, {
+					...response,
+				});
+			}
+
+
 			// If the content type is HTML, we get the country the request came from
 			const location = await getLocation(request);
 			const { country } = location;
