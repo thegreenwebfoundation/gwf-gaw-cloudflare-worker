@@ -1,4 +1,4 @@
-import { gridAwarePower } from '@greenweb/grid-aware-websites';
+import { PowerBreakdown } from '@greenweb/grid-aware-websites';
 import { getLocation, saveDataToKv, fetchDataFromKv } from '@greenweb/gaw-plugin-cloudflare-workers';
 
 export default {
@@ -38,28 +38,38 @@ export default {
 				});
 			}
 
-			// First check if the there's data for the country saved to KV
+			// Check we have have cached grid data for the country
 			let gridData = await fetchDataFromKv(env, country);
 
-			// If no cached data, fetch it using the `gridAwarePower` function
+			// If no cached data, fetch it using the PowerBreakdown class
 			if (!gridData) {
-				gridData = await gridAwarePower(country, env.EMAPS_API_KEY, {
+				const options = {
 					mode: 'low-carbon',
-				});
+					apiKey: env.EMAPS_API_KEY,
+				}
+
+				const powerBreakdown = new PowerBreakdown(options);
+				gridData = await powerBreakdown.check(country);
+
+				// If there's an error getting data, return the web page without any modifications
+				if (gridData.status === 'error') {
+					return new Response(response.body, {
+						...response,
+						headers: {
+							...response.headers,
+						},
+					});
+				}
+
+				// Save the fresh data to KV for future use.
+				// By default data is stored for 1 hour.
+				await saveDataToKv(env, country, JSON.stringify(gridData));
+			} else {
+				// Parse twice because the data appears to be double-stringified
+				// TODO: Is this a bug with Wrangler, Workers KV, or something else?
+				gridData = JSON.parse(JSON.parse(gridData));
 			}
 
-			// If there's an error getting data, return the web page without any modifications
-			if (gridData.status === 'error') {
-				return new Response(response.body, {
-					...response,
-					headers: {
-						...response.headers,
-					},
-				});
-			}
-
-			// Save the gridData to the KV store. By default, data is cached for 1 hour.
-			await saveDataToKv(env, country, JSON.stringify(gridData));
 
 			// If the grid aware flag is triggered (gridAware === true), then we'll return a modified HTML page to the user.
 			if (gridData.gridAware) {
@@ -143,6 +153,7 @@ export default {
 				return modifiedResponse;
 			}
 
+			// If the grid aware flag is not triggered, then we'll return the original HTML page to the user.
 			return new Response(response.body, {
 				...response,
 				headers: {
@@ -150,6 +161,9 @@ export default {
 				},
 			});
 		} catch (e) {
+
+			// If there's an error getting data, return the web page without any modifications
+			console.log('Error getting grid data', e);
 			return new Response(response.body, {
 				...response,
 				headers: {
