@@ -1,6 +1,6 @@
 # Grid-aware Worker
 
-This repository contains the code for a Cloudflare Worker that is applied to the <https://www.thegreenwebfoundation.org/tools/grid-aware-websites/> URL. It is a demonstration implementation of the [Grid-aware Websites](/thegreenwebfoundation/grid-aware-websites) project.
+This repository contains the code for a Cloudflare Worker that is applied to the <https://www.thegreenwebfoundation.org/tools/grid-aware-websites/> URL. It is a demonstration implementation of the [Grid-aware Websites](https://github.com/thegreenwebfoundation/grid-aware-websites) project.
 
 ## Guide
 
@@ -12,3 +12,5 @@ This worker follows the steps discussed in the tutorial - [Add Grid-aware Websit
 - Remove the YouTube Lyte plugin script. (non-visual)
 - Remove the Mailin plugin script. (non-visual)
 - Remove the Code Prettify script & CSS. (non-visual)
+
+The code for this Worker can be found in the [/src/index.js](/src/index.js) file.
